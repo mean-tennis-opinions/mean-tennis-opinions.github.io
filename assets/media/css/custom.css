@@ -1,0 +1,32 @@
+/* WOWCHEMY: About widget profile picture */
+#profile img,
+#profile .avatar,
+#profile img.avatar,
+#profile figure,
+#profile .border,
+#profile .border-1, #profile .border-2, #profile .border-3,
+#profile .border-white {
+  border: 0 !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+  background: transparent !important;
+}
+
+/* Se il frame è disegnato con pseudo-elementi */
+#profile .avatar::before,
+#profile .avatar::after,
+#profile figure::before,
+#profile figure::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* Non forzare il quadrato: lascia che il logo sia “rettangolare” */
+#profile img.avatar,
+#profile img {
+  width: min(560px, 100%) !important;  /* scegli tu */
+  height: auto !important;
+  object-fit: contain !important;
+  display: block !important;
+  margin: 0 auto !important;
+}

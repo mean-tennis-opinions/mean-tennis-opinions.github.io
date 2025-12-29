@@ -1,0 +1,53 @@
+{{- $data := site.Data.authors.podcast -}}
+{{- if not $data -}}
+<p><strong>Error:</strong> data/podcast.yaml not found (or it has invalid YAML).</p>
+{{- else -}}
+
+{{- $episodes := $data.episodes | default (slice) -}}
+{{- if eq (len $episodes) 0 -}}
+<p>No episodes yet.</p>
+{{- else -}}
+
+{{- range sort $episodes "date" "desc" -}}
+  <article style="margin: 2rem 0;">
+    <h3 style="margin-bottom: .25rem;">{{ .title }}</h3>
+
+    {{- with .date -}}
+      <div style="opacity: .75; margin-bottom: .75rem;">
+        {{ (time .).Format "02 Jan 2006" }}
+      </div>
+    {{- end -}}
+
+    {{- with .summary -}}
+      <p style="margin-top: 0; margin-bottom: .75rem;">{{ . }}</p>
+    {{- end -}}
+
+    {{- with .spotify -}}
+      {{- $embed := replace . "open.spotify.com/" "open.spotify.com/embed/" -}}
+      <iframe
+        style="border-radius:12px; margin: .25rem 0 1rem 0;"
+        src="{{ $embed }}"
+        width="100%"
+        height="152"
+        frameborder="0"
+        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+        loading="lazy"></iframe>
+
+      <p style="margin: 0;">
+        <a href="{{ . }}" target="_blank" rel="noopener">Open on Spotify</a>
+      </p>
+    {{- end -}}
+
+    {{- with .links -}}
+      <ul>
+        {{- with .apple -}}<li><a href="{{ . }}" target="_blank" rel="noopener">Apple Podcasts</a></li>{{- end -}}
+        {{- with .youtube -}}<li><a href="{{ . }}" target="_blank" rel="noopener">YouTube</a></li>{{- end -}}
+        {{- with .website -}}<li><a href="{{ . }}" target="_blank" rel="noopener">Website</a></li>{{- end -}}
+      </ul>
+    {{- end -}}
+  </article>
+{{- end -}}
+
+{{- end -}}
+{{- end -}}
+

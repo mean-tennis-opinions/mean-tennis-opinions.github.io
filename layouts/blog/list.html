@@ -1,0 +1,111 @@
+{{ define "main" }}
+<main class="blog-wrap">
+  <header class="blog-header">
+    <h1 class="blog-h1">{{ .Title }}</h1>
+    {{ with .Params.description }}<p class="blog-desc">{{ . }}</p>{{ end }}
+  </header>
+
+  {{/* 
+    Prendiamo TUTTE le pagine sotto la section "blog" (incluse le branch/section _index.md)
+    e togliamo la pagina corrente (/blog/).
+  */}}
+  {{ $all := where site.Pages "Section" "blog" }}
+  {{ $items := where $all "RelPermalink" "ne" .RelPermalink }}
+
+  {{/* teniamo solo pagine e section; fuori taxonomie/home ecc */}}
+  {{ $items = where $items "Kind" "in" (slice "page" "section") }}
+
+  {{/* Ordina: prima per Date (desc) quando presente, altrimenti per Title */}}
+  {{/* Hugo non permette un sort "misto" perfetto, ma questo va bene nella pratica */}}
+  {{ $items = sort $items "Date" "desc" }}
+
+  {{ if eq (len $items) 0 }}
+    <p>Nessun contenuto trovato sotto <code>content/blog/</code>.</p>
+  {{ else }}
+    <div class="blog-grid">
+      {{ range $items }}
+        {{ $p := . }}
+
+        {{/* --- COVER LOOKUP --- */}}
+        {{ $img := $p.Resources.GetMatch "cover*" }}
+
+        {{ $coverKey := "" }}
+        {{ with $p.Params.cover }}{{ $coverKey = . }}{{ end }}
+        {{ with $p.Params.featured_image }}{{ $coverKey = . }}{{ end }}
+
+        {{ if $coverKey }}
+          {{ $img = $p.Resources.GetMatch $coverKey }}
+          {{ if not $img }}
+            {{ $img = $p.Resources.GetMatch (printf "%s*" $coverKey) }}
+          {{ end }}
+        {{ end }}
+
+        <a class="blog-card" href="{{ $p.RelPermalink }}">
+          <div class="blog-thumb">
+            {{ if $img }}
+              <img src="{{ $img.RelPermalink }}" alt="{{ $p.Title }}" loading="lazy" />
+            {{ else if $p.Params.cover_url }}
+              <img src="{{ $p.Params.cover_url }}" alt="{{ $p.Title }}" loading="lazy" />
+            {{ else }}
+              <div class="blog-thumb-placeholder" aria-hidden="true"></div>
+            {{ end }}
+          </div>
+
+          <div class="blog-body">
+            <h2 class="blog-title">{{ $p.Title }}</h2>
+
+            {{/* le section spesso non hanno Date sensata: mostriamola solo se esiste */}}
+            {{ with $p.Date }}
+              {{ if gt .Unix 0 }}
+                <div class="blog-meta">{{ .Format "02 Jan 2006" }}</div>
+              {{ end }}
+            {{ end }}
+
+            {{ $txt := $p.Summary | plainify }}
+            {{ if gt (len $txt) 0 }}
+              <p class="blog-summary">{{ $txt | truncate 160 }}</p>
+            {{ end }}
+          </div>
+        </a>
+      {{ end }}
+    </div>
+  {{ end }}
+</main>
+
+<style>
+  .blog-wrap { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
+  .blog-header { margin-bottom: 1rem; }
+  .blog-h1 { margin: 0; }
+  .blog-desc { margin: .35rem 0 0 0; opacity: .8; }
+
+  .blog-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1rem;
+  }
+
+  .blog-card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    border: 1px solid rgba(0,0,0,.12);
+    border-radius: 14px;
+    overflow: hidden;
+    transition: transform .08s ease;
+  }
+  .blog-card:hover { transform: translateY(-2px); }
+
+  /* cover più piccola */
+  .blog-thumb { height: 110px; background: rgba(0,0,0,.05); }
+  .blog-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .blog-thumb-placeholder { width: 100%; height: 100%; }
+
+  .blog-body { padding: .9rem; }
+  .blog-title { margin: 0 0 .25rem 0; font-size: 1.05rem; line-height: 1.2; }
+  .blog-meta { font-size: .9rem; opacity: .7; margin-bottom: .5rem; }
+  .blog-summary { margin: 0; opacity: .9; }
+</style>
+{{ end }}
+
+
+
